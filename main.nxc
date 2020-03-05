@@ -1,0 +1,50 @@
+task recv_ints() {
+    int mail_box = MAILBOX1;
+    bool clear = true;
+    char result = 'Q';
+    int buffer = 0;
+    int res = 0;
+
+    while (true) {
+        result = ReceiveRemoteNumber(mail_box, clear, buffer);
+        if (result == NO_ERR) {
+            res = buffer;
+            int power = (res & 255) - 100;
+            int motor = (res >> 8) & 255;
+            if (power == 0) {
+                Off(OUT_A);
+            } else {
+                OnFwd(OUT_A, power);
+            }
+        } else if (result == STAT_MSG_EMPTY_MAILBOX) {
+        }
+    }
+}
+
+task check_sensor() {
+    int last_1 = 0;
+    int last_2 = 0;
+    int new_1 = 0;
+    int new_2 = 0;
+    int command_1 = (1 << 8) + 1;
+    int command_2 = (2 << 8) + 1;
+
+    while (true) {
+        new_1 = SENSOR_1;
+        new_2 = SENSOR_2;
+        if (last_1 == 0 && new_1 == 1) {
+            SendRemoteNumber(0, 2, command_1);
+        }
+        if (last_2 == 0 && new_2 == 1) {
+            SendRemoteNumber(0, 2, command_2);
+        }
+        last_1 = new_1;
+        last_2 = new_2;
+    }
+}
+
+task main() {
+    SetSensorTouch(IN_1);
+    SetSensorTouch(IN_2);
+    Precedes(recv_ints, check_sensor);
+}
