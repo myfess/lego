@@ -30,9 +30,11 @@ def _send_nxt_command(mail_box: int, command: int) -> List[int]:
     return msg
 
 
-
-
 def parse_msg(msg: List[int]) -> Dict:
+    """
+    Parse list of bytes
+    """
+
     len_ = len(msg)
 
     if len_ < 2:
@@ -55,17 +57,16 @@ def parse_msg(msg: List[int]) -> Dict:
             'data': None
         }
 
-
     if m_len == 9 and msg[2] == 128 and msg[3] == 9 and msg[5] == 5 and msg[10] == 0:
-        v = 0
+        value32 = 0
 
         for i in range(3, -1, -1):
-            v = v << 8
-            v |= msg[6 + i]
+            value32 = value32 << 8
+            value32 |= msg[6 + i]
 
         return {
             'type': 'SENSOR_DATA',
-            'data': parse_int32_sensor_value(v)
+            'data': parse_int32_sensor_value(value32)
         }
 
     return {
